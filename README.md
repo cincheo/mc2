@@ -6,6 +6,8 @@ It comes with a simple probe software that runs standard commands (so far, the `
 
 The client displays graphs of resource consumption and will save the data in a database.
 
+![plot](./docs/screenshot.png)
+
 ## Getting started
 
 ### Requirements and warnings
