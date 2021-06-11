@@ -1,0 +1,323 @@
+{
+  "applicationModel": {
+    "defaultPage": "index",
+    "navbar": {
+      "cid": "navbar",
+      "type": "NavbarView",
+      "brand": "MC2",
+      "navigationItems": [
+        {
+          "pageId": "index",
+          "label": "Index"
+        },
+        {
+          "label": "Table",
+          "pageId": "table"
+        }
+      ]
+    },
+    "autoIncrementIds": {
+      "ApplicationConnector": 5,
+      "ChartView": 1,
+      "DataMapper": 3,
+      "TimeSeriesChartView": 3,
+      "ButtonView": 3,
+      "CheckboxView": 1,
+      "CardView": 1,
+      "ContainerView": 2,
+      "TableView": 2,
+      "SplitView": 1
+    },
+    "versionIndex": 1,
+    "name": "mc2"
+  },
+  "roots": [
+    {
+      "cid": "navbar",
+      "type": "NavbarView",
+      "brand": "MC2",
+      "navigationItems": [
+        {
+          "pageId": "index",
+          "label": "Index"
+        },
+        {
+          "label": "Table",
+          "pageId": "table"
+        }
+      ]
+    },
+    {
+      "layout": "block",
+      "components": [
+        {
+          "kind": "repository",
+          "className": "mc2.domain.SampleRepository",
+          "methodName": "getSamples",
+          "arguments": "",
+          "content": {},
+          "type": "ApplicationConnector",
+          "eventHandlers": [
+            {
+              "global": true,
+              "name": "addSample",
+              "actions": [
+                {
+                  "targetId": "$self",
+                  "name": "eval",
+                  "description": "Default action",
+                  "argument": "target.dataModel.push(value.arguments[0])"
+                }
+              ]
+            }
+          ],
+          "cid": "application-connector-0"
+        },
+        {
+          "kind": "service",
+          "className": "mc2.probe.service.SampleService",
+          "methodName": "start",
+          "arguments": "",
+          "content": {},
+          "type": "ApplicationConnector",
+          "eventHandlers": [],
+          "cid": "application-connector-1"
+        },
+        {
+          "kind": "service",
+          "className": "mc2.probe.service.SampleService",
+          "methodName": "stop",
+          "arguments": "",
+          "content": {},
+          "type": "ApplicationConnector",
+          "eventHandlers": [],
+          "cid": "application-connector-2"
+        },
+        {
+          "mapper": "dataModel.slice(-60).map(s => { return { \n  x: new Date(s.instant.seconds*1000), \n  cpuUser: s.cpuUser, \n  cpuSystem: s.cpuSystem, \n  cpuIdle: s.cpuIdle\n}})",
+          "type": "DataMapper",
+          "eventHandlers": [],
+          "cid": "data-mapper-0",
+          "dataSource": "application-connector-0"
+        },
+        {
+          "mapper": "Tools.diff(dataModel, ['diskRead', 'diskWritten']).map((s, i) => { return { x: new Date(s.instant.seconds*1000), diskRead: s.diskRead, diskWritten: s.diskWritten }}).slice(-60)",
+          "type": "DataMapper",
+          "eventHandlers": [],
+          "cid": "data-mapper-1",
+          "dataSource": "application-connector-0"
+        },
+        {
+          "mapper": "Tools.diff(dataModel, ['networkIn', 'networkOut']).map((s, i) => { return { x: new Date(s.instant.seconds*1000), networkIn: s.networkIn, networkOut: s.networkOut }}).slice(-60)",
+          "type": "DataMapper",
+          "eventHandlers": [],
+          "cid": "data-mapper-2",
+          "dataSource": "application-connector-0"
+        },
+        {
+          "label": "Probe",
+          "size": "default",
+          "description": "Starts/stop the usage probe on the server.",
+          "field": "",
+          "disabled": false,
+          "switch": true,
+          "type": "CheckboxView",
+          "eventHandlers": [
+            {
+              "global": false,
+              "name": "@change",
+              "actions": [
+                {
+                  "targetId": "application-connector-0",
+                  "name": "eval",
+                  "description": "ON-clear",
+                  "argument": "target.dataModel = []",
+                  "condition": "this.dataModel"
+                },
+                {
+                  "targetId": "application-connector-1",
+                  "name": "invoke",
+                  "description": "ON-start",
+                  "argument": "",
+                  "condition": "this.dataModel"
+                },
+                {
+                  "targetId": "application-connector-2",
+                  "name": "invoke",
+                  "description": "OFF-stop",
+                  "condition": "!this.dataModel"
+                }
+              ]
+            }
+          ],
+          "cid": "checkbox-0",
+          "class": "m-4 p-4 border"
+        },
+        {
+          "chartType": "line",
+          "width": "400",
+          "height": "400",
+          "timeSeriesList": [
+            {
+              "key": "cpuUser",
+              "label": "User CPU (%)",
+              "borderWidth": "0",
+              "backgroundColor": "#e05757",
+              "borderColor": "#595959"
+            },
+            {
+              "key": "cpuSystem",
+              "label": "System CPU (%)",
+              "backgroundColor": "#6c84cb",
+              "borderColor": "#575757",
+              "borderWidth": "1"
+            },
+            {
+              "key": "cpuIdle",
+              "label": "IDLE CPU (%)",
+              "backgroundColor": "#67c360",
+              "borderWidth": "1",
+              "borderColor": "#787878"
+            }
+          ],
+          "type": "TimeSeriesChartView",
+          "eventHandlers": [],
+          "cid": "time-series-chart-0",
+          "dataSource": "data-mapper-0",
+          "stacked": true,
+          "title": "CPU Usage"
+        },
+        {
+          "orientation": "VERTICAL",
+          "primaryComponent": {
+            "chartType": "bar",
+            "width": "400",
+            "height": "400",
+            "timeSeriesList": [
+              {
+                "key": "diskRead",
+                "label": "Read",
+                "backgroundColor": "#2707f2",
+                "borderColor": "#000000"
+              },
+              {
+                "key": "diskWritten",
+                "label": "Write",
+                "borderWidth": "0",
+                "backgroundColor": "#ec0e0e",
+                "borderColor": "#000000"
+              }
+            ],
+            "type": "TimeSeriesChartView",
+            "eventHandlers": [],
+            "cid": "time-series-chart-1",
+            "dataSource": "data-mapper-1",
+            "title": "Disk",
+            "stacked": false
+          },
+          "secondaryComponent": {
+            "chartType": "bar",
+            "width": "400",
+            "height": "400",
+            "timeSeriesList": [
+              {
+                "key": "networkIn",
+                "label": "In",
+                "borderWidth": "0",
+                "backgroundColor": "#0e06f9",
+                "borderColor": "#2e8a37"
+              },
+              {
+                "key": "networkOut",
+                "label": "Out",
+                "backgroundColor": "#f90101",
+                "borderColor": "#000000",
+                "borderWidth": "0"
+              }
+            ],
+            "type": "TimeSeriesChartView",
+            "eventHandlers": [],
+            "cid": "time-series-chart-2",
+            "dataSource": "data-mapper-2",
+            "stacked": false,
+            "title": "Network"
+          },
+          "type": "SplitView",
+          "eventHandlers": [],
+          "cid": "split-0"
+        },
+        {
+          "layout": "block",
+          "components": [
+            {
+              "label": "Refresh",
+              "buttonType": "button",
+              "variant": "primary",
+              "size": "default",
+              "pill": true,
+              "squared": false,
+              "block": true,
+              "disabled": false,
+              "eventHandlers": [
+                {
+                  "global": false,
+                  "name": "@click",
+                  "actions": [
+                    {
+                      "targetId": "application-connector-0",
+                      "name": "update",
+                      "description": "Default action"
+                    }
+                  ]
+                }
+              ],
+              "type": "ButtonView",
+              "cid": "button-2",
+              "class": ""
+            }
+          ],
+          "type": "ContainerView",
+          "eventHandlers": [],
+          "cid": "container-1",
+          "class": "p-5"
+        }
+      ],
+      "type": "ContainerView",
+      "eventHandlers": [],
+      "cid": "index"
+    },
+    {
+      "dataSource": "$object",
+      "layout": "block",
+      "components": [
+        {
+          "kind": "repository",
+          "className": "mc2.domain.SampleRepository",
+          "methodName": "getSamples",
+          "arguments": "",
+          "content": {},
+          "type": "ApplicationConnector",
+          "eventHandlers": [],
+          "cid": "connector-4"
+        },
+        {
+          "selectMode": "single",
+          "selectable": true,
+          "striped": false,
+          "hover": true,
+          "small": false,
+          "fields": [],
+          "perPage": "0",
+          "stacked": "sm",
+          "type": "TableView",
+          "eventHandlers": [],
+          "cid": "table-1",
+          "dataSource": "connector-4"
+        }
+      ],
+      "type": "ContainerView",
+      "eventHandlers": [],
+      "cid": "table"
+    }
+  ]
+}
