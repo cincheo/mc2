@@ -21,7 +21,7 @@ You will need Java 15 to run the probe and an OS where the standard ``top`` comm
 
 
 ```
-% java -jar mc2-probe/dist/mc2-probe-0.1-SNAPSHOT-jar-with-dependencies.jar
+java -jar mc2-probe/dist/mc2-probe-0.1-SNAPSHOT-jar-with-dependencies.jar
 ```
 
 Note that the probe will start an HTTP & Web Socket server on port 8091.
